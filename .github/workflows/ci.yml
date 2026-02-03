@@ -36,17 +36,19 @@ jobs:
         run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
 
       # 3. Build and Push (Using Release Tag)
+      # 3. Build and Push (Using Git SHA for the tag)
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+          # We use github.sha for a unique ID on every push
           tags: |
-            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.event.release.tag_name }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}
             ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest
           build-args: |
-            API_VERSION=${{ github.event.release.tag_name }}
-            BUILD_ENV=production
+            API_VERSION=${{ github.sha }}
+            BUILD_ENV=development
 
       # 4. Update Helm for ArgoCD
       - name: Update Helm Chart
