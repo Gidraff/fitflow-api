@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fitflow-api.fullname" . }}
+  labels:
+    {{- include "fitflow-api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "fitflow-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "fitflow-api.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "fitflow-api.serviceAccountName" . }}
+      containers:
+        # --- Main Go API Container ---
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              value: "postgres://$(DB_USER):$(DB_PASS)@127.0.0.1:5432/$(DB_NAME)?sslmode=disable"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName }}
+                  key: username
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName }}
+                  key: password
+            - name: DB_NAME
+              value: {{ .Values.database.name }}
+            - name: KEYCLOAK_ISSUER_URL
+              value: {{ .Values.keycloak.issuerUrl }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+        # --- Cloud SQL Auth Proxy Sidecar ---
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.1
+          args:
+            - "--structured-logs"
+            - "--port=5432"
+            - "{{ .Values.database.connectionName }}"
+          securityContext:
+            runAsNonRoot: true
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

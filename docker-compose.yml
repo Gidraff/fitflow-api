@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+  # --- API Database ---
+  db-api:
+    image: postgres:16-alpine
+    container_name: fitflow-db-api
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${API_DB_USER}
+      POSTGRES_PASSWORD: ${API_DB_PASSWORD}
+      POSTGRES_DB: ${API_DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-api-data:/var/lib/postgresql/data
+    networks:
+      - api-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${API_DB_USER} -d ${API_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Keycloak Database ---
+  db-auth:
+    image: postgres:16-alpine
+    container_name: fitflow-db-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${KC_DB_USER:-admin} # Separate user for KC
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-admin123}
+      POSTGRES_DB: ${KC_DB_NAME:-kcdb}
+    networks:
+      - api-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${KC_DB_USER:-admin} -d ${KC_DB_NAME:-kcdb}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: auth_server
+    command: start-dev --proxy edge
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db-auth:5432/${KC_DB_NAME:-kcdb}
+      KC_DB_USERNAME: ${KC_DB_USER:-admin}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-admin123}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    networks:
+      - api-network
+    depends_on:
+      db-auth:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Go API Service ---
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile # Ensure you have a Dockerfile in your root
+    container_name: fitflow-api-v1
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://${API_DB_USER}:${API_DB_PASSWORD}@db-api:5432/${API_DB_NAME}?sslmode=disable
+      - KEYCLOAK_ISSUER_URL=http://keycloak:8080/realms/trainer-app
+      # This matches the internal port inside the container
+      - PORT=8081
+    ports:
+      - "8081:8081"
+    networks:
+      - api-network
+    depends_on:
+      db-api:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+
+volumes:
+  db-api-data:
+  db-auth-data:
+
+networks:
+  api-network:
+    driver: bridge
