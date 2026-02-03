@@ -1,8 +1,8 @@
 name: Release to GAR
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
 
 permissions:
   contents: write   # To push the helm value changes back to the repo
