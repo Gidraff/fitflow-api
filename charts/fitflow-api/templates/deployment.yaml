@@ -31,8 +31,6 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
-            - name: DATABASE_URL
-              value: "postgres://$(DB_USER):$(DB_PASS)@127.0.0.1:5432/$(DB_NAME)?sslmode=disable"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -45,6 +43,8 @@ spec:
                   key: password
             - name: DB_NAME
               value: {{ .Values.database.name }}
+            - name: DATABASE_URL
+              value: "postgres://$(DB_USER):$(DB_PASS)@127.0.0.1:5432/$(DB_NAME)?sslmode=disable"
             - name: KEYCLOAK_ISSUER_URL
               value: {{ .Values.keycloak.issuerUrl }}
           resources:
