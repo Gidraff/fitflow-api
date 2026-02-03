@@ -26,3 +26,34 @@ resources:
   requests:
     cpu: 250m
     memory: 256Mi
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account (useful for Workload Identity)
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "fitflow-api-sa"
+
+  # Add this for the deployment.yaml probes/resources
+autoscaling:
+  enabled: false
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# These are often used in the ingress.yaml template
+ingress:
+  enabled: false

@@ -8,13 +8,13 @@ spec:
   source:
     repoURL: https://github.com/Gidraff/fitflow-api.git
     targetRevision: HEAD
-    path: ../charts/fitflow-api # Path to the Helm chart
-    helm:
-      valueFiles:
-        - values.yaml
+    path: charts/fitflow-api # Path to the Helm chart
+    # helm:
+    #   valueFiles:
+    #     - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: fitflow
+    namespace: default
   syncPolicy:
     automated:
       prune: true
