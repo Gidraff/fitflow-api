@@ -53,10 +53,14 @@ jobs:
       # 4. Update Helm for ArgoCD
       - name: Update Helm Chart
         run: |
+          # Updates the repository line to the new GAR path
           sed -i "s|repository: .*|repository: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}|" charts/fitflow-api/values.yaml
-          sed -i "s/tag: .*/tag: \"${{ github.event.release.tag_name }}\"/" charts/fitflow-api/values.yaml
+          
+          # Updates the tag line to the current commit SHA
+          sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" charts/fitflow-api/values.yaml
+          
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add charts/fitflow-api/values.yaml
-          git commit -m "chore: release version ${{ github.event.release.tag_name }}"
+          git commit -m "chore: update image to ${{ github.sha }}"
           git push
