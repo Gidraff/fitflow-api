@@ -30,11 +30,13 @@ resources:
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
+  name: "fitflow-api-sa"
   # Annotations to add to the service account (useful for Workload Identity)
-  annotations: {}
+  annotations: {
+    iam.gke.io/gcp-service-account: "fitflow-api-gsa@gidraff-cloudkite-58sdk3.iam.gserviceaccount.com"
+  }
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "fitflow-api-sa"
 
   # Add this for the deployment.yaml probes/resources
 autoscaling:
