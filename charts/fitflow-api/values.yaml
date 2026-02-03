@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: us-central1-docker.pkg.dev/gidraff-cloudkite-58sdk3/fitflow-repo/fitflow-api
   pullPolicy: Always
-  tag: "6a8f8ca636e9e0edde1e7a115dd388b24e4f415d"
+  tag: "70260faf77965ad21da8508ea559bcd03a42808f"
 
 service:
   type: ClusterIP
@@ -17,7 +17,7 @@ database:
 
 keycloak:
   # Internal K8s DNS for Keycloak v2
-  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local:8080/realms/trainer-app"
+  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local:80/realms/trainer-app"
 
 resources:
   limits:
