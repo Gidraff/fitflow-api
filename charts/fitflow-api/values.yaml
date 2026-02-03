@@ -17,7 +17,7 @@ database:
 
 keycloak:
   # Internal K8s DNS for Keycloak v2
-  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local:80/realms/trainer-app"
+  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local/realms/trainer-app"
 
 resources:
   limits:
