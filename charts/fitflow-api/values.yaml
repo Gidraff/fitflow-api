@@ -56,4 +56,14 @@ securityContext: {}
 
 # These are often used in the ingress.yaml template
 ingress:
-  enabled: false
+  enabled: true
+  className: "gce" # Use "gce" for Google Cloud Load Balancer or "nginx" if using NGINX controller
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: "fitflow-api-ip" # Name of your reserved GCP Static IP
+    networking.gke.io/managed-certificates: "cordiafit-ingress-ip" # If using Google-managed SSL
+  hosts:
+    - host: api.cordiafit.fit
+      paths:
+        - path: /
+          pathType: Prefix

@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: fitflow-api-cert # This matches your ingress annotation
+spec:
+  domains:
+    - api.cordiafit.fit
