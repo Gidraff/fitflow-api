@@ -17,7 +17,7 @@ database:
 
 keycloak:
   # Internal K8s DNS for Keycloak v2
-  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local/realms/trainer-app"
+  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local/auth/realms/trainer-app"
 
 resources:
   limits:
@@ -58,7 +58,7 @@ securityContext: {}
 
 # These are often used in the ingress.yaml template
 ingress:
-  enabled: true
+  enabled: false
   className: "gce" # Use "gce" for Google Cloud Load Balancer or "nginx" if using NGINX controller
   annotations:
     kubernetes.io/ingress.class: gce
