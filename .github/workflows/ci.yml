@@ -86,7 +86,7 @@ jobs:
       - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend # Path to Vite project
+          context: ./frontend/web # Path to Vite project
           push: true
           tags: |
             ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.FE_IMAGE }}:${{ github.sha }}
