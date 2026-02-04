@@ -37,6 +37,31 @@ jobs:
 
       # 3. Build and Push (Using Release Tag)
       # 3. Build and Push (Using Git SHA for the tag)
+
+      # --- NEW: Run Database Migrations ---
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/
+
+      - name: Install Cloud SQL Auth Proxy
+        run: |
+          curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.1/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+
+      - name: Run Migrations
+        env:
+          DB_PASS: ${{ secrets.DB_PASSWORD }} # Ensure this is in GitHub Secrets
+          CONNECTION_NAME: "gidraff-cloudkite-58sdk3:us-central1:cordiafit-db"
+        run: |
+          # Start proxy in background
+          ./cloud-sql-proxy $CONNECTION_NAME --port 5432 & 
+          sleep 5 # Wait for proxy to establish connection
+          
+          # Run migrate command
+          migrate -path ./migrations/ \
+            -database "postgres://fitflow_admin:$DB_PASS@127.0.0.1:5432/fitflow_db?sslmode=disable" \
+            up
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
