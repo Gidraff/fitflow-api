@@ -5,87 +5,106 @@ on:
     branches: [main]
 
 permissions:
-  contents: write   # To push the helm value changes back to the repo
-  id-token: write    # To authenticate with Google via OIDC
+  contents: write
+  id-token: write
 
 env:
   GAR_LOCATION: us-central1 
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   REPOSITORY: fitflow-repo
-  IMAGE: fitflow-api
+  API_IMAGE: fitflow-api
+  FE_IMAGE: fitflow-frontend
 
 jobs:
-  build-push-deploy:
+  # --- JOB 1: API & DATABASE ---
+  backend-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1. Keyless Auth using Workload Identity
       - id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_SA_EMAIL }}
 
-      # 2. Login to GAR
       - name: Docker Auth
         run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # 3. Build and Push (Using Release Tag)
-      # 3. Build and Push (Using Git SHA for the tag)
-
-      # --- NEW: Run Database Migrations ---
-      - name: Install golang-migrate
+      # Database Migrations
+      - name: Run Migrations
+        env:
+          CONNECTION_NAME: ${{ secrets.CONNECTION_NAME }}
+          DB_PASS: ${{ secrets.DB_PASSWORD }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
           sudo mv migrate /usr/local/bin/
-
-      - name: Install Cloud SQL Auth Proxy
-        run: |
           curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.1/cloud-sql-proxy.linux.amd64
           chmod +x cloud-sql-proxy
-
-      - name: Run Migrations
-        env:
-          DB_PASS: ${{ secrets.DB_PASSWORD }} # Ensure this is in GitHub Secrets
-          CONNECTION_NAME: "gidraff-cloudkite-58sdk3:us-central1:cordiafit-db"
-        run: |
-          # Start proxy in background
           ./cloud-sql-proxy $CONNECTION_NAME --port 5432 & 
-          sleep 5 # Wait for proxy to establish connection
-          
-          # Run migrate command
-          migrate -path ./migrations/ \
-            -database "postgres://fitflow_admin:$DB_PASS@127.0.0.1:5432/fitflow_db?sslmode=disable" \
-            up
-      - name: Build and Push
+          sleep 5
+          migrate -path ./migrations/ -database "postgres://$DB_USERNAME:$DB_PASS@127.0.0.1:5432/$DB_NAME?sslmode=disable" up
+
+      - name: Build and Push API
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile # Path to API Dockerfile
           push: true
-          # We use github.sha for a unique ID on every push
           tags: |
-            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}
-            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest
-          build-args: |
-            API_VERSION=${{ github.sha }}
-            BUILD_ENV=development
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.API_IMAGE }}:${{ github.sha }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.API_IMAGE }}:latest
 
-      # 4. Update Helm for ArgoCD
-      - name: Update Helm Chart
+      - name: Update API Helm Chart
         run: |
-          # Updates the repository line to the new GAR path
-          sed -i "s|repository: .*|repository: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}|" charts/fitflow-api/values.yaml
-          
-          # Updates the tag line to the current commit SHA
+          sed -i "s|repository: .*|repository: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.API_IMAGE }}|" charts/fitflow-api/values.yaml
           sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" charts/fitflow-api/values.yaml
+
+      # We will commit both at the end of the second job or here if you use a single job
+      # For simplicity, let's keep it in one job if they share the same repo/Helm chart
+
+  # --- JOB 2: FRONTEND ---
+  frontend-build:
+    runs-on: ubuntu-latest
+    needs: backend-deploy # Optional: only build FE if migrations/BE pass
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Docker Auth
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend # Path to Vite project
+          push: true
+          tags: |
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.FE_IMAGE }}:${{ github.sha }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.FE_IMAGE }}:latest
+          build-args: |
+            VITE_API_URL=https://api.cordiafit.fit
+            VITE_AUTH_URL=https://auth.cordiafit.fit
+            VITE_REALM=trainer-app
+            VITE_CLIENT_ID=fitflow-frontend
+
+      - name: Update Frontend Helm Chart
+        run: |
+          # Replace with your frontend helm chart path
+          sed -i "s|repository: .*|repository: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.FE_IMAGE }}|" charts/fitflow-frontend/values.yaml
+          sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" charts/fitflow-frontend/values.yaml
           
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add charts/fitflow-api/values.yaml
-          git commit -m "chore: update image to ${{ github.sha }}"
+          git add .
+          git commit -m "chore: update images to ${{ github.sha }}"
           git push
