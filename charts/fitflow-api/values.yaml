@@ -8,6 +8,9 @@ image:
 service:
   type: ClusterIP
   port: 8081
+  annotations: {
+    cloud.google.com/neg: '{"ingress": true}'
+  }
 
 database:
   name: "fitflow_db"
@@ -17,7 +20,7 @@ database:
 
 keycloak:
   # Internal K8s DNS for Keycloak v2
-  issuerUrl: "http://keycloak-v2.keycloak.svc.cluster.local/auth/realms/trainer-app"
+  issuerUrl: "https://auth.cordiafit.fit/auth/realms/trainer-app"
 
 resources:
   limits:
