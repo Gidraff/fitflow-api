@@ -22,9 +22,9 @@ const MainLayout = () => {
                         <LayoutDashboard size={20} />
                         <span>Dashboard</span>
                     </Link>
-                    <Link to="/athletes" className={`nav-link ${location.pathname === '/athletes' ? 'active' : ''}`}>
+                    <Link to="/clients" className={`nav-link ${location.pathname === '/clients' ? 'active' : ''}`}>
                         <Users size={20} />
-                        <span>My Athletes</span>
+                        <span>My Clients</span>
                     </Link>
                     <Link to="#" className="nav-link">
                         <TrendingUp size={20} />
