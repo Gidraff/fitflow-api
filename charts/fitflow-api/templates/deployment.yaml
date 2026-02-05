@@ -31,6 +31,8 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
+            - name: ALLOWED_ORIGINS
+              value: "https://www.cordiafit.fit,https://cordiafit.fit,http://localhost:5173"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
