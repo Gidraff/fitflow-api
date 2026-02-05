@@ -2,9 +2,9 @@ import Keycloak from "keycloak-js";
 
 
 const keycloak = new Keycloak({
-    url: 'http://localhost:8081',
-    realm: 'trainer-app',
-    clientId: 'trainer-api',
+    url: import.meta.env.VITE_AUTH_URL,
+    realm: import.meta.env.VITE_REALM,
+    clientId: import.meta.env.VITE_CLIENT_ID,
 });
 
 export const initKeycloak = (onAuthenticated: () => void) => {

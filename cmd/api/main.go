@@ -5,26 +5,35 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"fitflow-api/internal/auth"
 	"fitflow-api/internal/handlers"
 
-	"github.com/go-chi/chi/v5/middleware" // This provides the standard middleware
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" // Postgres driver
+	_ "github.com/lib/pq"
 )
 
 func main() {
 	_ = godotenv.Load()
 
-	// 1. Database Initialization
 	dbURL := os.Getenv("DATABASE_URL")
+
+	allowedOriginsRaw := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOriginsRaw == "" {
+		allowedOriginsRaw = "http://localhost:5173"
+	}
+	allowedOrigins := strings.Split(allowedOriginsRaw, ",")
+
 	db, err := sqlx.Connect("postgres", dbURL)
+
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -32,12 +41,20 @@ func main() {
 
 	v := validator.New()
 
-	// 2. Auth Configuration (Reuse your Keycloak settings)
 	issuer := os.Getenv("KEYCLOAK_ISSUER_URL")
 	jwksURL := fmt.Sprintf("%s/protocol/openid-connect/certs", issuer)
 
 	// 3. Router Setup
 	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   allowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Preflight caching (5 minutes)
+	}))
 
 	// Base Middleware
 	r.Use(middleware.RequestID)
