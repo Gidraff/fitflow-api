@@ -77,6 +77,10 @@ func main() {
 	// 4. Route Definitions
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public Routes (if any)
+		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
+
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("OK"))
