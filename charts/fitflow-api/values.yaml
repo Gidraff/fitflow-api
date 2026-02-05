@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: us-central1-docker.pkg.dev/gidraff-cloudkite-58sdk3/fitflow-repo/fitflow-api
   pullPolicy: Always
-  tag: "bdf12c1f5822d2e86285ea6449c50152fd759ce7"
+  tag: "4eb1cb61e8c49d47315a42cfcabd1697da17da70"
 
 service:
   type: ClusterIP
