@@ -78,17 +78,22 @@ jobs:
       # --- 4. Atomic Helm Update ---
       - name: Update Helm Charts & Git Push
         run: |
-          # Update API values
+          # 1. Update values (your existing logic)
           sed -i "s|repository: .*|repository: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.API_IMAGE }}|" charts/fitflow-api/values.yaml
           sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" charts/fitflow-api/values.yaml
-          
-          # Update Frontend values
           sed -i "s|repository: .*|repository: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.FE_IMAGE }}|" charts/fitflow-frontend/values.yaml
           sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" charts/fitflow-frontend/values.yaml
           
-          # Single commit for both changes
+          # 2. Config Git
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
+          
+          # 3. Commit and Sync
           git add charts/
           git commit -m "chore: release version ${{ github.sha }} (API & Frontend)"
+          
+          # 4. FETCH LATEST AND REBASE BEFORE PUSHING
+          git pull --rebase origin main
+          
+          # 5. Push
           git push
