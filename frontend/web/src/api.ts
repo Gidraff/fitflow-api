@@ -19,22 +19,22 @@ api.interceptors.request.use(async (config) => {
 });
 
 export const getClients = async () => {
-    const response = await api.get('/trainer/clients');
+    const response = await api.get('/clients');
     return response.data;
 };
 
 export const getClientById = async (id: string) => {
-    const response = await api.get(`/trainer/clients/${id}`);
+    const response = await api.get(`/clients/${id}`);
     return response.data;
 };
 
 export const createClient = async (data: { name: string; goal: string; profile: string }) => {
-    const response = await api.post('/trainer/clients', data);
+    const response = await api.post('/clients', data);
     return response.data;
 };
 
 export const updateClient = async (id: string, data: { name: string; goal: string; profile: string }) => {
-    const response = await api.put(`/trainer/clients/${id}`, data);
+    const response = await api.put(`/clients/${id}`, data);
     return response.data;
 };
 
@@ -43,12 +43,12 @@ export const deleteClient = async (id: string) => {
 };
 
 export const getClientSessions = async (clientId: string) => {
-    const response = await api.get(`/trainer/clients/${clientId}/sessions`);
+    const response = await api.get(`/clients/${clientId}/sessions`);
     return response.data;
 };
 
 export const addSessionFeedback = async (sessionId: string, feedback: { feedback: string; performance_rating: number }) => {
-    const response = await api.patch(`/trainer/sessions/${sessionId}/feedback`, feedback);
+    const response = await api.patch(`/sessions/${sessionId}/feedback`, feedback);
     return response.data;
 };
 
