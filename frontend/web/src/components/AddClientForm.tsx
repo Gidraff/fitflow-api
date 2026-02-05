@@ -10,7 +10,7 @@ interface Props {
 }
 
 const AddClientForm = ({ onClose, onSuccess, clientToEdit }: Props) => {
-    const [formData, setFormData] = useState({ name: '', goal: '', profile: '' });
+    const [formData, setFormData] = useState({ name: '', goal: '', email: '', profile: '' });
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -18,6 +18,7 @@ const AddClientForm = ({ onClose, onSuccess, clientToEdit }: Props) => {
             setFormData({
                 name: clientToEdit.name,
                 goal: clientToEdit.goal || '',
+                email: clientToEdit.email || '',
                 profile: clientToEdit.profile || ''
             });
         }
@@ -83,6 +84,18 @@ const AddClientForm = ({ onClose, onSuccess, clientToEdit }: Props) => {
                             value={formData.goal}
                             onChange={e => setFormData({ ...formData, goal: e.target.value })}
                             disabled={loading}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="email">Email Address</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                            placeholder="athlete@cordiafit.fit"
+                            required
                         />
                     </div>
 

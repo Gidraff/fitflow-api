@@ -28,12 +28,12 @@ export const getClientById = async (id: string) => {
     return response.data;
 };
 
-export const createClient = async (data: { name: string; goal: string; profile: string }) => {
+export const createClient = async (data: { name: string; goal: string; email: string; profile: string }) => {
     const response = await api.post('/clients', data);
     return response.data;
 };
 
-export const updateClient = async (id: string, data: { name: string; goal: string; profile: string }) => {
+export const updateClient = async (id: string, data: { name: string; goal: string; email: string; profile: string }) => {
     const response = await api.put(`/clients/${id}`, data);
     return response.data;
 };
