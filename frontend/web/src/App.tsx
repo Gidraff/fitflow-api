@@ -12,7 +12,7 @@ const App = () => {
           {/* Default view is the Dashboard Overview */}
           <Route path="/" element={<Dashboard />} />
           {/* Management view for the Athlete List */}
-          <Route path="/athletes" element={<Athletes />} />
+          <Route path="/clients" element={<Athletes />} />
           {/* Detail view for a specific athlete */}
           <Route path="/client/:id" element={<ClientProfile />} />
 
