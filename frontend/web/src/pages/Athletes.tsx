@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import AddClientForm from '../components/AddClientForm';
 
 const Athletes = () => {
-    const [clients, setClients] = useState([]);
+    const [clients, setClients] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [modal, setModal] = useState<{ show: boolean, client?: any }>({ show: false });
@@ -37,7 +37,7 @@ const Athletes = () => {
         }
     };
 
-    const filteredClients = clients.filter((c: any) =>
+    const filteredClients = (clients || []).filter((c: any) =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.goal?.toLowerCase().includes(searchQuery.toLowerCase())
     );

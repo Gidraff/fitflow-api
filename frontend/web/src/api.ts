@@ -20,7 +20,7 @@ api.interceptors.request.use(async (config) => {
 
 export const getClients = async () => {
     const response = await api.get('/clients');
-    return response.data;
+    return response.data || [];
 };
 
 export const getClientById = async (id: string) => {

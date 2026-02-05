@@ -112,8 +112,7 @@ func (s *AppState) LogWorkoutSession(w http.ResponseWriter, r *http.Request) {
 // List all clients for the authenticated trainer
 func (s *AppState) ListClients(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*models.Claims)
-	var clients []models.Client
-
+	clients := make([]models.Client, 0)
 	err := s.DB.Select(&clients, "SELECT id, name, goal, profile FROM clients WHERE trainer_id = $1", claims.Sub)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
