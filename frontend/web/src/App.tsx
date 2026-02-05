@@ -10,15 +10,15 @@ const App = () => {
       <Routes>
         <Route element={<MainLayout />}>
           {/* Default view is the Dashboard Overview */}
-          <Route path="/" element={<Dashboard />} />
+          <Route index element={<Dashboard />} />
           {/* Management view for the Athlete List */}
           <Route path="/clients" element={<Athletes />} />
           {/* Detail view for a specific athlete */}
           <Route path="/client/:id" element={<ClientProfile />} />
 
           {/* Catch-all redirect to Dashboard */}
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

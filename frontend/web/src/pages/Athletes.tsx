@@ -12,8 +12,10 @@ const Athletes = () => {
     const [modal, setModal] = useState<{ show: boolean, client?: any }>({ show: false });
 
     const loadData = async () => {
+        
         try {
             const data = await getClients();
+            console.log("Clients Data:", data)
             setClients(data);
         } catch (err) {
             toast.error("Failed to load athletes.");
@@ -47,7 +49,7 @@ const Athletes = () => {
             <div className="page-header">
                 <div className="header-content" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                     <div>
-                        <h1>My Athletes</h1>
+                        <h1>My Clients</h1>
                         <p className="subtitle">Manage and edit your athlete directory</p>
                     </div>
                     <button className="add-btn" onClick={() => setModal({ show: true })}>
