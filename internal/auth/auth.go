@@ -42,6 +42,10 @@ func AuthMiddleware(jwksURL string, issuer string) func(http.Handler) http.Handl
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
 			// ... (Rest of your existing token extraction and validation logic)
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
