@@ -30,7 +30,14 @@ func main() {
 	if allowedOriginsRaw == "" {
 		allowedOriginsRaw = "http://localhost:5173"
 	}
-	allowedOrigins := strings.Split(allowedOriginsRaw, ",")
+	parts := strings.Split(allowedOriginsRaw, ",")
+	var allowedOrigins []string
+	for _, origin := range parts {
+		trimmed := strings.TrimSpace(origin)
+		if trimmed != "" {
+			allowedOrigins = append(allowedOrigins, trimmed)
+		}
+	}
 
 	db, err := sqlx.Connect("postgres", dbURL)
 
