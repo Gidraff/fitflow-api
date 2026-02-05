@@ -83,13 +83,6 @@ func main() {
 
 		// Protected Routes
 		r.Group(func(r chi.Router) {
-			r.Use(func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Add("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-					w.Header().Add("Access-Control-Allow-Credentials", "true")
-					next.ServeHTTP(w, r)
-				})
-			})
 			r.Use(auth.AuthMiddleware(jwksURL, issuer))
 
 			// Client Endpoints

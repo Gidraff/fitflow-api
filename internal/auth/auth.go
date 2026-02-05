@@ -45,7 +45,7 @@ func AuthMiddleware(jwksURL string, issuer string) func(http.Handler) http.Handl
 			// ... (Rest of your existing token extraction and validation logic)
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-				http.Error(w, "Missing or invalid Authorization header", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
@@ -55,12 +55,12 @@ func AuthMiddleware(jwksURL string, issuer string) func(http.Handler) http.Handl
 
 			if err != nil || !token.Valid {
 				log.Printf("JWT Error: %v\n", err)
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
 			if claims.Issuer != issuer {
-				http.Error(w, "Invalid token issuer", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 

@@ -39,7 +39,7 @@ export const updateClient = async (id: string, data: { name: string; goal: strin
 };
 
 export const deleteClient = async (id: string) => {
-    await api.delete(`/trainer/clients/${id}`);
+    await api.delete(`/clients/${id}`);
 };
 
 export const getClientSessions = async (clientId: string) => {
